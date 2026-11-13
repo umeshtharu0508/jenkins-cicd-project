@@ -1,60 +1,41 @@
-
-pipeline {
+pipeline{
     agent any
-
-    stages {
-        stage('Checkout') {
-            steps {
-                echo 'Checking out GitHub repository...'
+    stages{
+        stage("Checkout"){
+            steps{
+                echo "Checking out source code..."
                 checkout scm
             }
         }
-
-        stage('Build') {
-            steps {
-                echo 'Building application...'
-
-                bat '''
-                    if not exist build mkdir build
-                    copy app.txt build\\app.txt
-                '''
+        stage("Install Dependencies"){
+            steps{
+                echo "Installing Node.js dependencies..."
+                bat "npm install"
             }
         }
-
-        stage('Test') {
-            steps {
-                echo 'Testing application...'
-
-                bat '''
-                    if not exist build\\app.txt exit /b 1
-                    findstr /C:"Hello from GitHub and Jenkins!" build\\app.txt >nul
-                    if errorlevel 1 exit /b 1
-                    echo All tests passed!
-                '''
+        stage("Automated Test"){
+            steps{
+                echo "Running Node.js automated tests..."
+                bat "npm test"
             }
         }
-
-        stage('Package') {
-            steps {
-                echo 'Archiving build artifacts...'
-
-                archiveArtifacts artifacts: 'build/*.txt',
-                                 fingerprint: true
+        stage("Archive"){
+            steps{
+                echo "Archiving project files..."
+                archiveArtifacts artifacts: "app.js, app.test.js, package.json"
+                fingerprint: true
             }
         }
     }
-
-    post {
-        success {
-            echo 'CI Pipeline completed successfully!'
+    post{
+        success{
+            echo "Node.js CI Pipeline completed successfull!"
         }
-
-        failure {
-            echo 'CI Pipeline failed!'
+        failure{
+            echo "Node.js CI Pipeline failed!"
         }
-
-        always {
-            echo 'Pipeline execution finished.'
+        always{
+            echo "Pipeline execution finished."
         }
     }
 }
